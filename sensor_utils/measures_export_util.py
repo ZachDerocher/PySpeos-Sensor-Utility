@@ -44,7 +44,7 @@ def render_mpl_table(data, col_width=3.0, row_height=0.625, font_size=14,
 
 
 
-def measures_export(sim, sensor):
+def measures_export(sim, sensor, out_path, xml_template=""):
         """
         retrieve the xmp measures, save as text, and then export as formatted table
         inputs:
@@ -59,8 +59,16 @@ def measures_export(sim, sensor):
                 from comtypes.client import CreateObject
         dpf_instance = CreateObject("XMPViewer.Application")
         dpf_instance.OpenFile(xmp_path)
+        if xml_template:
+               # load the xml into the xmp viewer result
+               dpf_instance.ImportTemplate(os.getcwd() + "\\" + xml_template, 1, 1, 0)
         measures_path = xmp_path[0:-3] + 'txt'
         dpf_instance.MeasuresExportTXT(measures_path)
+
+        # Close XMPViewer
+        pid=dpf_instance.GetPID
+        cmd = 'taskkill /PID ' + str(pid) + ' /F'
+        os.system(cmd)
 
         header = "a\tb\tc\td\te\tf\tg\th\ti\tj\tk\tl\tm\tn\to\tp" # the data has 16 columns
         tmp_txt = insert_header(measures_path, header)
@@ -69,10 +77,10 @@ def measures_export(sim, sensor):
         measures.to_string()
         os.remove(tmp_txt)
                 
-        fig,ax = render_mpl_table(measures, header_columns=0, col_width=5.0)
-        out_png = "table_mpl.png"
-        fig.savefig(out_png)
-        return out_png
+        fig,ax = render_mpl_table(measures, header_columns=0, col_width=8.0)
+        out_png = "Measures_Table.png"
+        fig.savefig(out_path + "\\" + out_png)
+        return xmp_path
 
 
 if __name__=="__main__":

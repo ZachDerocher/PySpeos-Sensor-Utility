@@ -257,7 +257,7 @@ class LxpGui:
 
 
 
-def run_lpx_viewer(png_path, p, lxp, sensor_obj, sensor_names, sensor_types):
+def run_lxp_viewer(png_path, p, lxp, sensor_obj, sensor_names, sensor_types):
     root = Tk()
     LxpGui(root, png_path, p, lxp, sensor_obj, sensor_names, sensor_types)
     root.mainloop()

@@ -61,14 +61,14 @@ def get_intensity_map(dpf_instance, png_path):
     plt.imsave(png_path, xmp_data, cmap='jet')  
 
 
-def export_result_to_png(sim, results_name, sensor_type):
+def export_result_to_png(sim, sensor_name, results_name, sensor_type):
     """
     exports a stored xmp result to png
     """
     xmp_path = orf._find_correct_result(sim, results_name + ".xmp")
     if xmp_path == '':
         for res in sim.result_list:
-            if res.path.endswith('.xmp'):
+            if ('.xmp' in res.path) & (sensor_name in res.path):
                 xmp_path = res.path
                 break
     #orf.open_result_image(simulation_feature=sim, result_name=xmp_path) # single-liner pyspeos tool, but it opens a pop-up window...
@@ -76,17 +76,24 @@ def export_result_to_png(sim, results_name, sensor_type):
 
     if os.name == "nt":
         from comtypes.client import CreateObject
-    dpf_instance = CreateObject("XMPViewer.Application")
+    try:
+        dpf_instance = CreateObject("XMPViewer.Application")
+    except:
+        import subprocess
+        viewer_path = r"C:\Program Files\ANSYS Inc\v251\Optical Products\Viewers\Xmpviewer.exe"
+        dpf_instance = subprocess.Popen([viewer_path, xmp_path])
+
     dpf_instance.OpenFile(xmp_path)
     if sensor_type=='intensity':
-        # for intensity sensor, speos exports a border with the png...need to export manually (very slow)
-        # alternatively, could export as text and read in (faster but more error prone)
-        get_intensity_map(dpf_instance, png_path)
-        #res = dpf_instance.ExportXMPImage(png_path, 1)
-
+        #get_intensity_map(dpf_instance, png_path)
+        dpf_instance.SetColorMode(10) # iso level color
+        res = dpf_instance.ExportXMPImage(png_path, 1)
+        
+    elif sensor_type=='radiance':
+        dpf_instance.SetColorMode(6) # true color
+        res = dpf_instance.ExportXMPImage(png_path, 1)
     else:
-        # for radiance and irradiance sensor, the native export feature doesn't leave behind
-        # any borders, so we can just use that
+        dpf_instance.SetColorMode(0) # false color
         res = dpf_instance.ExportXMPImage(png_path, 1)
 
     # Close XMPViewer
@@ -112,16 +119,17 @@ def lxp_viewer_util(speos, p, sim):
     lxp_data = []
     for i in range(0, len(result_name)):
         # create a png of the xmp result (for viewing in GUI)
-        this_png_path = export_result_to_png(sim, result_name[i], sensor_types[i])
+        this_png_path = export_result_to_png(sim, sensor_names[i], result_name[i], sensor_types[i])
         png_paths.append(this_png_path)
 
         # retrieve the lxp data
         lpf_path = this_png_path[0:-3] + "lpf"
-        lxp = LightPathFinder(speos, lpf_path)
+        print(lpf_path)
+        lxp = LightPathFinder(speos, lpf_path) # this process is very slow for a complex model
         lxp_data.append(lxp)
 
     # run the lxp gui
-    lxp_filter_tool.run_lpx_viewer(png_paths, p, lxp_data, sensor_objects, sensor_names, sensor_types)
+    lxp_filter_tool.run_lxp_viewer(png_paths, p, lxp_data, sensor_objects, sensor_names, sensor_types)
 
 
 def create_interactive_sim(p):
@@ -149,7 +157,6 @@ def create_interactive_sim(p):
 
     interactive_sim.commit()
     return interactive_sim
-
 
 
 def view_interactive_lxp(speos, p, interactive_sim):
