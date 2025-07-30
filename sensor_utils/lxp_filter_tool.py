@@ -120,7 +120,10 @@ class LxpGui:
         # plotting the graph
         plot_extent = [x_start, x_end, y_start, y_end]
         #sim = ax.imshow(img, interpolation='none', extent=plot_extent)
-        img = plt.imread(png_path)
+        try:
+            img = plt.imread(png_path)
+        except:
+            img = 0.5*np.ones((100, 200, 3)) # couldn't find the image; just use dummy data
         self.plot1.imshow(img, interpolation='none', extent=plot_extent)
         self.plot1.grid(color='w', which='both', linestyle='-', linewidth=0.4)
         #self.plot1.minorticks_on()

@@ -39,7 +39,7 @@ p = Project(
 origin = [0, 0, 0]
 direction = [0, 1, 0, 0, 0, 1, 1, 0, 0]
 
-SENSOR_NAME = "Intensity.LowBeam"
+SENSOR_NAME = "Intensity_New"
 sensor1 = p.create_sensor(name=SENSOR_NAME, feature_type=sensor.SensorXMPIntensity)
 
 sensor1.set_type_spectral()
@@ -73,11 +73,15 @@ sim_result = sim.compute_CPU()
 
 
 # export the measures from the intensity sensor
-intensity_sensor = p.find(name="", name_regex=True, feature_type=sensor.SensorXMPIntensity)[0]
-measures_result_png = measures_export_util.measures_export(sim, intensity_sensor, os.getcwd())
+#intensity_sensor = p.find(name="", name_regex=True, feature_type=sensor.SensorXMPIntensity)[0]
+#measures_result_png = measures_export_util.measures_export(sim, intensity_sensor, os.getcwd())
 
 # run the LXP viewer for direct simulation, including ray filtering GUI
-lxp_viewer_util.lxp_viewer_util(speos, p, sim)
+lxp_data = lxp_viewer_util.lxp_viewer_util(speos, p, sim, run_gui=True)
+for sensor in range(0, len(lxp_data)):
+    ray_data = lxp_data[sensor].rays
+    print(ray_data[0])
+
 
 #root_part = p.find(name="", feature_type=Part) # root part
 #subpart = p.find(name="RootPart/", name_regex=True) # all bodies under root

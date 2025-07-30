@@ -71,7 +71,6 @@ def export_result_to_png(sim, sensor_name, results_name, sensor_type):
             if ('.xmp' in res.path) & (sensor_name in res.path):
                 xmp_path = res.path
                 break
-    #orf.open_result_image(simulation_feature=sim, result_name=xmp_path) # single-liner pyspeos tool, but it opens a pop-up window...
     png_path = xmp_path[0:len(xmp_path)-3] + 'png'
 
     if os.name == "nt":
@@ -79,10 +78,9 @@ def export_result_to_png(sim, sensor_name, results_name, sensor_type):
     try:
         dpf_instance = CreateObject("XMPViewer.Application")
     except:
-        import subprocess
-        viewer_path = r"C:\Program Files\ANSYS Inc\v251\Optical Products\Viewers\Xmpviewer.exe"
-        dpf_instance = subprocess.Popen([viewer_path, xmp_path])
-
+        print("error: could not open photometric lab application for result image export\nLXP GUI will not show sensor result")
+        return xmp_path
+    
     dpf_instance.OpenFile(xmp_path)
     if sensor_type=='intensity':
         #get_intensity_map(dpf_instance, png_path)
@@ -104,32 +102,36 @@ def export_result_to_png(sim, sensor_name, results_name, sensor_type):
     return png_path
     
 
-def lxp_viewer_util(speos, p, sim):
+def lxp_viewer_util(speos, p, sim, run_gui=True):
     """
     utility function to start up the lxp viewer GUI
+    returns a list of LXP objects (one for each sensor in the simulation)
     """
     
     # get the sensor 3d coordinates and orientation
     sensor_objects, sensor_types = get_sensor_objects(p)
 
     # get the result as a png file
-    result_name, sensor_names = get_result_names(sim, sensor_objects)
+    result_names, sensor_names = get_result_names(sim, sensor_objects)
 
     png_paths = []
     lxp_data = []
-    for i in range(0, len(result_name)):
+    for i in range(0, len(result_names)):
         # create a png of the xmp result (for viewing in GUI)
-        this_png_path = export_result_to_png(sim, sensor_names[i], result_name[i], sensor_types[i])
+        this_png_path = export_result_to_png(sim, sensor_names[i], result_names[i], sensor_types[i])
         png_paths.append(this_png_path)
 
         # retrieve the lxp data
         lpf_path = this_png_path[0:-3] + "lpf"
         print(lpf_path)
-        lxp = LightPathFinder(speos, lpf_path) # this process is very slow for a complex model
+        lxp = LightPathFinder(speos, lpf_path) # this process is a bottleneck for heavy data
         lxp_data.append(lxp)
 
     # run the lxp gui
-    lxp_filter_tool.run_lxp_viewer(png_paths, p, lxp_data, sensor_objects, sensor_names, sensor_types)
+    if run_gui:
+        lxp_filter_tool.run_lxp_viewer(png_paths, p, lxp_data, sensor_objects, sensor_names, sensor_types)
+    
+    return lxp_data
 
 
 def create_interactive_sim(p):
