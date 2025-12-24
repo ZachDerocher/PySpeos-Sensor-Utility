@@ -19,10 +19,14 @@ def get_sensor_objects(p):
     sensor_types = len(sensor_irradiance_objects)*['irradiance']
     sensor_radiance_objects = p.find(name="", name_regex=True, feature_type=sensor.SensorRadiance)
     sensor_types = sensor_types + len(sensor_radiance_objects)*['radiance']
-    sensor_intensity_objects = p.find(name="", name_regex=True, feature_type=sensor.SensorXMPIntensity)
-    sensor_types = sensor_types + len(sensor_intensity_objects)*['intensity']
-
-    sensor_objects = sensor_irradiance_objects + sensor_radiance_objects + sensor_intensity_objects
+    sensor_objects = sensor_irradiance_objects + sensor_radiance_objects
+    try:
+        # can retrieve Intensity Sensor as well, depending on PySpeos version
+        sensor_intensity_objects = p.find(name="", name_regex=True, feature_type=sensor.SensorXMPIntensity)
+        sensor_types = sensor_types + len(sensor_intensity_objects)*['intensity']
+        sensor_objects += sensor_intensity_objects
+    except:
+        pass
     
     return sensor_objects, sensor_types
 

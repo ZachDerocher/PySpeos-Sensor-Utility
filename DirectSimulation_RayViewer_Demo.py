@@ -9,21 +9,12 @@ from ansys.speos.core import Project, Speos, launcher, sensor
 from ansys.speos.core import Body, Face, Part
 
 
-
 HOSTNAME = "localhost"
 GRPC_PORT = 50098  # Be sure the Speos GRPC Server has been started on this port.
-USE_DOCKER = False  # Set to False if you're running this example locally as a Notebook.
+speos = launcher.launch_local_speos_rpc_server()
 
-if USE_DOCKER:
-    speos = Speos(host=HOSTNAME, port=GRPC_PORT)
-else:
-    speos = launcher.launch_local_speos_rpc_server(port=GRPC_PORT, version="252")
-
-if USE_DOCKER:  # Running on the remote server.
-    assets_data_path = Path("/app") / "assets"
-else:
-    assets_data_path = Path("C:\\Users\\zderoche\\DocumentsLocal\\git\\pyspeos\\tests\\assets\\")
-    model_data_path =  os.getcwd() + "\\Reflector\\SimExport\\ProjectorSim20_2025R2.speos\\ProjectorSim20_2025R2.speos"
+assets_data_path = Path("C:\\Users\\zderoche\\DocumentsLocal\\git\\pyspeos\\tests\\assets\\")
+model_data_path =  os.getcwd() + "\\Reflector\\SimExport\\ProjectorSim19_2025R2.speos\\ProjectorSim19_2025R2.speos"
 
 p = Project(
     speos=speos,
@@ -35,9 +26,11 @@ p = Project(
 #lxp_viewer_util.view_interactive_lxp(speos, p, interactive_sim)
 
 # this demonstrates how to add an Intensity Sensor
+"""
 # === Create Sensor ===
 origin = [0, 0, 0]
 direction = [0, 1, 0, 0, 0, 1, 1, 0, 0]
+
 
 SENSOR_NAME = "Intensity_New"
 sensor1 = p.create_sensor(name=SENSOR_NAME, feature_type=sensor.SensorXMPIntensity)
@@ -59,13 +52,13 @@ sensor1.y_sampling = sensor_y_sampling
 sensor1.set_layer_type_none()
 sensor1.set_axis_system([*origin, *direction])
 sensor1.commit()
-
+"""
 # run the direct simulation, with LXP enabled
 sim_name ="ProjectorSim"
 sim = p.find(sim_name)[0]
 sim.set_stop_condition_rays_number(int(1e4))
 sensors_list = sim.get('sensor_paths')
-sensors_list.append(SENSOR_NAME)
+#sensors_list.append(SENSOR_NAME)
 sim.set_sensor_paths(sensors_list)
 sim.set_light_expert(True)
 sim.commit()
