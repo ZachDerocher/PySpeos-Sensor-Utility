@@ -11,9 +11,8 @@ from ansys.speos.core import Body, Face, Part
 
 HOSTNAME = "localhost"
 GRPC_PORT = 50098  # Be sure the Speos GRPC Server has been started on this port.
-speos = launcher.launch_local_speos_rpc_server()
+speos = launcher.launch_local_speos_rpc_server(version="252")
 
-assets_data_path = Path("C:\\Users\\zderoche\\DocumentsLocal\\git\\pyspeos\\tests\\assets\\")
 model_data_path =  os.getcwd() + "\\Reflector\\SimExport\\ProjectorSim19_2025R2.speos\\ProjectorSim19_2025R2.speos"
 
 p = Project(
